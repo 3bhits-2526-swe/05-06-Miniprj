@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class Bomb : Collectible
 {
-    [SerializeField] private int damage = 1;
 
     void Start()
     {
@@ -12,13 +11,6 @@ public class Bomb : Collectible
 
     protected override void Collect(GameObject player)
     {
-        // Bomben-Logik
-        PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
-        if (playerHealth != null)
-        {
-            playerHealth.TakeDamage(damage);
-        }
-
         // Screen Shake Effekt (optional)
         CameraShake shake = Camera.main.GetComponent<CameraShake>();
         if (shake != null)
@@ -27,28 +19,28 @@ public class Bomb : Collectible
         }
 
         // Punktzahl abziehen
-        PlayerScore playerScore = player.GetComponent<PlayerScore>();
-        if (playerScore != null)
+        if (PlayerScore.Instance != null)
         {
-            playerScore.AddScore(scoreValue);
+            PlayerScore.Instance.AddScore(scoreValue);
         }
 
         base.Collect(player);
+        
+        // Reset player and score
+        PlayerController.Instance.ResetPlayer();
+        if (PlayerScore.Instance != null)
+        {
+            PlayerScore.Instance.ResetScore();
+        }
     }
 
     public override void OnTriggerEnter2D(Collider2D collision)
     {
-
         // Überprüfen, ob der Spieler den Bereich berührt
-        if (collision.CompareTag("Player"))
+        if (collision.CompareTag("Player") && !collected)
         {
-            if (collision.CompareTag("Player") && !collected)
-            {
-                collected = true;
-                Collect(collision.gameObject);
-            }
-            PlayerController.Instance.ResetPlayer();
-            //collision.GetComponent<PlayerController>().ResetPlayer();
+            collected = true;
+            Collect(collision.gameObject);
         }
     }
 }

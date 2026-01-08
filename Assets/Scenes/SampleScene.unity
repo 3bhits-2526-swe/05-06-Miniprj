@@ -736,8 +736,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54bec2d08fd72424f9c05c95feaef38a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Score: {fileID: 1878015820}
-  totalScore: 0
+  scoreText: {fileID: 1878015820}
 --- !u!4 &542132230
 Transform:
   m_ObjectHideFlags: 0
@@ -1425,7 +1424,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: -229.34644, w: -95.56116}
+  m_margin: {x: 293.16205, y: 121.65222, z: -821.65314, w: -255.10504}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

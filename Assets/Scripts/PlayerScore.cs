@@ -1,47 +1,50 @@
-using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerScore : MonoBehaviour
 {
-    [SerializeField] private TMP_Text Score;
+    public static PlayerScore Instance { get; private set; }
 
-    public int totalScore = 0;
-    
-    void Start()
+    [SerializeField] private TMP_Text scoreText;
+
+    private int _totalScore;
+
+    private void Awake()
     {
-        UpdateUI();
-        
-        Debug.Log("Spiel gestartet. Anfangs-Score: " + totalScore);
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
     }
-    
+
+    private void Start()
+    {
+        _totalScore = 0;
+        UpdateUI();
+    }
+
     public void AddScore(int points)
     {
-        totalScore += points;
-        totalScore = Mathf.Max(0, totalScore);
+        _totalScore += points;
+        _totalScore = Mathf.Max(0, _totalScore);
         UpdateUI();
     }
-    
-    public void AddCoin()
-    {
-        totalScore += 1; // Coins geben +1 zum Score
-        UpdateUI();
 
-        Debug.Log("Coin gesammelt! Neuer Score: " + totalScore);
-    }
-    
-    void UpdateUI()
+    private void UpdateUI()
     {
-        if (Score != null)
-            Score.text = "Score: " + totalScore;
-
-            Debug.Log("Aktueller Score: " + totalScore);
+        if (scoreText != null)
+        {
+            scoreText.text = "Score: " + _totalScore;
+        }
     }
 
     public void ResetScore()
     {
-        totalScore = 0;
+        _totalScore = 0;
         UpdateUI();
     }
 }

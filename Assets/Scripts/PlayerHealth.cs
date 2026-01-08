@@ -1,3 +1,4 @@
+/*
 using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour
@@ -31,5 +32,12 @@ public class PlayerHealth : MonoBehaviour
         
         // Health zurücksetzen
         currentHealth = maxHealth;
+
+        // Score zurücksetzen
+        if (PlayerScore.Instance != null)
+        {
+            PlayerScore.Instance.ResetScore();
+        }
     }
 }
+*/

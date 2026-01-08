@@ -10,11 +10,9 @@ public class Coin : Collectible
     protected override void Collect(GameObject player)
     {
         // Münzen-Sammel-Logik
-        PlayerScore playerScore = player.GetComponent<PlayerScore>();
-        if (playerScore != null)
+        if (PlayerScore.Instance != null)
         {
-            playerScore.AddCoin();
-            playerScore.AddScore(scoreValue);
+            PlayerScore.Instance.AddScore(scoreValue);
         }
         
         base.Collect(player);
