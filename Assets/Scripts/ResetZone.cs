@@ -10,6 +10,10 @@ public class ResetZone : MonoBehaviour
             Debug.Log("Tried Reset");
             // Spieler zurücksetzen
             PlayerController.Instance.ResetPlayer();
+            if (PlayerScore.Instance != null)
+            {
+            PlayerScore.Instance.ResetScore();
+            }
         }
         if (collision.GetComponent<Platform>() != null)
         {
