@@ -7,6 +7,7 @@ public class ResetZone : MonoBehaviour
         // Überprüfen, ob der Spieler den Bereich berührt
         if (collision.GetComponent<PlayerController>() != null)
         {
+            Debug.Log("Tried Reset");
             // Spieler zurücksetzen
             PlayerController.Instance.ResetPlayer();
             if (PlayerScore.Instance != null)
@@ -16,7 +17,7 @@ public class ResetZone : MonoBehaviour
         }
         if (collision.GetComponent<Platform>() != null)
         {
-            
+            Debug.Log("Tried second reset");
             // Spieler zurücksetzen
             Destroy(collision.gameObject);
         }

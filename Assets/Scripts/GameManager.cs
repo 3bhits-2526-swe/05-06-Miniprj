@@ -1,88 +1,147 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    [Header("Prefabs")]
     [SerializeField] private GameObject platformPrefab;
     [SerializeField] private GameObject coinPrefab;
     [SerializeField] private GameObject bombPrefab;
     [SerializeField] private GameObject cloud1Prefab;
     [SerializeField] private GameObject cloud2Prefab;
-    [SerializeField] private int platformCount = 100;
-    [SerializeField] private float coinSpawnChance = 0.3f; // 30% Chance für Coins
-    [SerializeField] private float bombSpawnChance = 0.1f; // 10% Chance für Bomben
 
-    void Awake()
+    [Header("Generation")]
+    [SerializeField] private int platformCount = 100;
+    [SerializeField] private float minVerticalGap = 1.8f;
+    [SerializeField] private float maxVerticalGap = 3.0f;
+    [SerializeField] private float minHorizontalGap = 1.5f;
+
+    [Header("Spawn Chances")]
+    [SerializeField] private float coinSpawnChance = 0.3f;
+    [SerializeField] private float bombSpawnChance = 0.1f;
+
+    [Header("Background Parallax")]
+    [SerializeField] private Transform background;
+    [SerializeField] private float parallaxFactor = 0.3f;
+
+    private Camera cam;
+    private float cameraStartY;
+    private float backgroundStartY;
+    private float halfScreenWidth;
+    private float lastPlatformX;
+
+    private void Awake()
     {
         Instance = this;
+        cam = Camera.main;
     }
 
     private void Start()
     {
+        cameraStartY = cam.transform.position.y;
+
+        if (background != null)
+            backgroundStartY = background.position.y;
+
+        // Calculate visible width in world units
+        halfScreenWidth = cam.orthographicSize * cam.aspect;
+
         GenerateLevel();
+    }
+
+    private void Update()
+    {
+        HandleParallax();
     }
 
     internal void GenerateLevel()
     {
-        destroyLevel();
-        Vector3 spawnPosition = new Vector3();
+        DestroyLevel();
+
+        Vector3 spawnPosition = Vector3.zero;
+        lastPlatformX = 0f;
 
         for (int i = 0; i < platformCount; i++)
         {
-            spawnPosition.y += Random.Range(.5f, 2f);
-            spawnPosition.x = Random.Range(-5f, 5f);
+            // Vertical spacing
+            spawnPosition.y += Random.Range(minVerticalGap, maxVerticalGap);
 
-            // Nur EINE Plattform spawnen (die zweite Zeile entfernen!)
-
-            GameObject newPlat = Instantiate(platformPrefab, spawnPosition, Quaternion.identity);
-            newPlat.transform.SetParent(gameObject.transform);
-
-            // Wolken spawnen (zufällig zwischen cloud1 und cloud2)
-            float cloudChance = Random.value;
-            if (cloudChance < 0.07f && cloud1Prefab != null) // 5% cloud1
+            // Horizontal spacing (avoid overlaps)
+            float newX;
+            do
             {
-                Vector3 cloudPosition = new Vector3(
-                    Random.Range(-8f, 8f),
-                    spawnPosition.y + Random.Range(2f, 4f),
-                    Random.Range(8f, 16f));
-                GameObject newCloud = Instantiate(cloud1Prefab, cloudPosition, Quaternion.identity);
-                newCloud.transform.SetParent(gameObject.transform);
+                newX = Random.Range(-halfScreenWidth + 0.5f, halfScreenWidth - 0.5f);
             }
-            else if (cloudChance >= 0.07f && cloudChance < 0.14f && cloud2Prefab != null)
-            {
-                Vector3 cloudPosition = new Vector3(
-                    Random.Range(-8f, 8f),
-                    spawnPosition.y + Random.Range(2f, 4f),
-                    Random.Range(8f, 16f));
-                GameObject newCloud = Instantiate(cloud2Prefab, cloudPosition, Quaternion.identity);
-                newCloud.transform.SetParent(gameObject.transform);
-            }
+            while (Mathf.Abs(newX - lastPlatformX) < minHorizontalGap);
 
-            // Coins spawnen
+            spawnPosition.x = newX;
+            lastPlatformX = newX;
+
+            // Platform
+            Instantiate(platformPrefab, spawnPosition, Quaternion.identity, transform);
+
+            // Coins
             if (Random.value < coinSpawnChance && coinPrefab != null)
             {
-                Vector3 coinPosition = spawnPosition + Vector3.up * 1.5f;
-                GameObject newCoin = Instantiate(coinPrefab, coinPosition, Quaternion.identity);
-                newCoin.transform.SetParent(gameObject.transform);
+                Instantiate(
+                    coinPrefab,
+                    spawnPosition + Vector3.up * 1.5f,
+                    Quaternion.identity,
+                    transform
+                );
             }
 
-            // Bomben spawnen
+            // Bombs
             if (Random.value < bombSpawnChance && bombPrefab != null)
             {
-                Vector3 bombPosition = spawnPosition + Vector3.up * 1.5f;
-                GameObject newBomb = Instantiate(bombPrefab, bombPosition, Quaternion.identity);
-                newBomb.transform.SetParent(gameObject.transform);
+                Instantiate(
+                    bombPrefab,
+                    spawnPosition + Vector3.up * 1.5f,
+                    Quaternion.identity,
+                    transform
+                );
+            }
+
+            // Clouds
+            float cloudChance = Random.value;
+            if (cloudChance < 0.07f && cloud1Prefab != null)
+            {
+                Instantiate(
+                    cloud1Prefab,
+                    spawnPosition + new Vector3(Random.Range(-2f, 2f), Random.Range(3f, 5f), 10f),
+                    Quaternion.identity,
+                    transform
+                );
+            }
+            else if (cloudChance < 0.14f && cloud2Prefab != null)
+            {
+                Instantiate(
+                    cloud2Prefab,
+                    spawnPosition + new Vector3(Random.Range(-2f, 2f), Random.Range(3f, 5f), 10f),
+                    Quaternion.identity,
+                    transform
+                );
             }
         }
     }
-    private void destroyLevel() 
+
+    private void DestroyLevel()
     {
-        foreach (Transform child in transform) 
-        {
+        foreach (Transform child in transform)
             Destroy(child.gameObject);
-        }
     }
 
+    private void HandleParallax()
+    {
+        if (background == null) return;
+
+        float cameraDeltaY = cam.transform.position.y - cameraStartY;
+
+        background.position = new Vector3(
+            background.position.x,
+            backgroundStartY + cameraDeltaY * parallaxFactor,
+            background.position.z
+        );
+    }
 }
